@@ -1,0 +1,26 @@
+# Raw datasets (downloaded from HuggingFace - too large for git)
+data/raw/
+data/processed/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+.venv/
+
+# AWS
+.aws/
+
+# Node/Mobile
+node_modules/
+.expo/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

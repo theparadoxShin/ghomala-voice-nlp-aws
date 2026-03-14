@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "NAM SA'",
+    "slug": "nam-sa",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/logo.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFF8F0"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.daemoncraft.namsa",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "NAM SA' needs access to your microphone for voice conversations in Ghomala'.",
+        "NSSpeechRecognitionUsageDescription": "NAM SA' uses speech recognition to understand Ghomala' and French."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/logo.png",
+        "backgroundColor": "#FFF8F0"
+      },
+      "package": "com.daemoncraft.namsa",
+      "permissions": [
+        "RECORD_AUDIO"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/logo.png"
+    },
+    "plugins": [
+      [
+        "expo-av",
+        {
+          "microphonePermission": "NAM SA' needs your microphone for Ghomala' conversations."
+        }
+      ]
+    ]
+  }
+}
