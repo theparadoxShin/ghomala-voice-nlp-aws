@@ -276,7 +276,7 @@ def validate_data_record_bounds(num_samples: int, model_name: str):
 # ============================================================================
 def validate_converse_dataset(file_path: str, model_name: str):
     """Validates the entire conversation dataset against Nova format requirements."""
-    print(f"\n🔍 Validating: {file_path}")
+    print(f"\nValidating: {file_path}")
     print(f"   Model target: Nova {model_name}")
 
     samples = load_jsonl_data(file_path)
@@ -339,7 +339,7 @@ def main():
 
     args = parser.parse_args()
 
-    print("🌍 NAM SA' — JSONL Validation for Bedrock Nova Fine-Tuning")
+    print("NAM SA' — JSONL Validation for Bedrock Nova Fine-Tuning")
     print("=" * 60)
 
     files_to_validate = []

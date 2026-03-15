@@ -33,6 +33,9 @@
     "web": {
       "favicon": "./assets/logo.png"
     },
+    "extra": {
+      "API_URL": ""
+    },
     "plugins": [
       [
         "expo-av",

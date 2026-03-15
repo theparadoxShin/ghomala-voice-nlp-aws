@@ -61,12 +61,13 @@ nkap-so-nova/
 # Install data pipeline dependencies
 pip install -r requirements.txt
 
-# Download Masakhane datasets from HuggingFace
+# Download Masakhane/Ghomala datasets from HuggingFace
 cd data/scripts
 python 01_download_datasets.py
 
 # Transform to Bedrock conversation JSONL format (train.jsonl + val.jsonl)
-python 02_transform_to_jsonl.py
+python 02_transform_to_jsonl.py              # → cappé à 20,000 (AWS Nova Lite)
+python 02_transform_to_jsonl.py --no-limit    # → TOUS les 48,897 samples (open source)
 
 # Upload to S3 bucket
 python 03_upload_to_s3.py

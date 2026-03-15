@@ -45,7 +45,7 @@ def download_french_ghomala():
 
     Columns: francais, ghomala
     """
-    print("\n📥 Downloading stfotso/french-ghomala-bandjoun...")
+    print("\nDownloading stfotso/french-ghomala-bandjoun...")
 
     dataset = load_dataset("stfotso/french-ghomala-bandjoun", split="train")
 
@@ -64,7 +64,7 @@ def download_french_ghomala():
 
     if all_entries:
         s = all_entries[0]
-        print(f"   📝 Sample:")
+        print(f"   Sample:")
         print(f"      FR:  {s['french'][:80]}")
         print(f"      BBJ: {s['ghomala'][:80]}")
 
@@ -80,7 +80,7 @@ def download_english_ghomala():
 
     Columns: source (English), target (Ghomala')
     """
-    print("\n📥 Downloading stephanedonna/english_ghomala...")
+    print("\nDownloading stephanedonna/english_ghomala...")
 
     dataset = load_dataset("stephanedonna/english_ghomala", split="train")
 
@@ -99,7 +99,7 @@ def download_english_ghomala():
 
     if all_entries:
         s = all_entries[0]
-        print(f"   📝 Sample:")
+        print(f"   Sample:")
         print(f"      EN:  {s['english'][:80]}")
         print(f"      BBJ: {s['ghomala'][:80]}")
 
@@ -109,19 +109,19 @@ def download_english_ghomala():
 def print_summary(fr_data, en_data):
     """Print a clear summary of all downloaded data."""
     print("\n" + "=" * 60)
-    print("📊 DOWNLOAD SUMMARY")
+    print("DOWNLOAD SUMMARY")
     print("=" * 60)
     print(f"   French-Ghomala' (stfotso):     {len(fr_data):>6} pairs")
     print(f"   English-Ghomala' (stephanedonna): {len(en_data):>6} pairs")
     print(f"   {'─' * 45}")
     print(f"   TOTAL raw translation pairs:   {len(fr_data) + len(en_data):>6}")
-    print(f"\n   📁 Files saved to: {RAW_DIR}")
-    print(f"\n   ➡️  Next step: python 02_transform_to_jsonl.py")
+    print(f"\n   Files saved to: {RAW_DIR}")
+    print(f"\n   Next step: python 02_transform_to_jsonl.py")
     print("=" * 60)
 
 
 if __name__ == "__main__":
-    print("🌍 NAM SA' — Ghomala' Dataset Download Pipeline")
+    print("NAM SA' — Ghomala' Dataset Download Pipeline")
     print("=" * 60)
 
     fr_data = download_french_ghomala()

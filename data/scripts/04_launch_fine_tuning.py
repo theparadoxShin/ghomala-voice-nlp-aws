@@ -89,7 +89,7 @@ def launch_sft_job(bedrock_client):
     job_name = f"nam-sa-ghomala-sft-{timestamp}"
     model_name = f"nam-sa-ghomala-v1-{timestamp}"
     
-    print(f"\n🚀 Launching SFT Job: {job_name}")
+    print(f"\nLaunching SFT Job: {job_name}")
     print(f"   Base model:  {BASE_MODEL_ID}")
     print(f"   Train data:  {TRAIN_S3_URI}")
     print(f"   Output:      {OUTPUT_S3_URI}")
@@ -161,7 +161,7 @@ def launch_rft_job(bedrock_client, base_model=None):
     # Lambda ARN for the grader function — REPLACE WITH YOUR LAMBDA ARN
     grader_lambda_arn = "arn:aws:lambda:us-east-1:YOUR_ACCOUNT_ID:function:ghomala-rft-grader"
     
-    print(f"\n🚀 Launching RFT Job: {job_name}")
+    print(f"\nLaunching RFT Job: {job_name}")
     print(f"   Base model:     {model_id}")
     print(f"   Grader Lambda:  {grader_lambda_arn}")
     
@@ -215,7 +215,7 @@ def launch_rft_job(bedrock_client, base_model=None):
 # ============================================================================
 def monitor_job(bedrock_client, job_arn):
     """Poll the fine-tuning job status until completion."""
-    print(f"\n⏳ Monitoring job...")
+    print(f"\nMonitoring job...")
     print(f"   (This can take 30 min to 2 hours. You can also check in the AWS Console)")
     print(f"   AWS Console: https://console.aws.amazon.com/bedrock/home#/custom-models\n")
     
@@ -227,7 +227,7 @@ def monitor_job(bedrock_client, job_arn):
         print(f"   [{timestamp}] Status: {status}")
         
         if status == "Completed":
-            print(f"\n   🎉 Fine-tuning COMPLETE!")
+            print(f"\n   Fine-tuning COMPLETE!")
             print(f"   Custom model ARN: {response.get('outputModelArn', 'N/A')}")
             print(f"   Custom model name: {response.get('outputModelName', 'N/A')}")
             return response
@@ -248,7 +248,7 @@ def test_model(model_id):
     """
     Test the fine-tuned model with a few Ghomala' prompts.
     """
-    print(f"\n🧪 Testing fine-tuned model: {model_id}")
+    print(f"\nTesting fine-tuned model: {model_id}")
     
     bedrock_runtime = boto3.client(
         "bedrock-runtime",
@@ -299,13 +299,13 @@ def main():
     
     args = parser.parse_args()
     
-    print("🌍 NAM SA' — Bedrock Fine-Tuning Pipeline")
+    print("NAM SA' — Bedrock Fine-Tuning Pipeline")
     print("=" * 60)
     
     bedrock = boto3.client("bedrock", region_name=AWS_REGION)
     
     if args.mode == "sft":
-        print("\n📚 Mode: Supervised Fine-Tuning (SFT)")
+        print("\n   Mode: Supervised Fine-Tuning (SFT)")
         print("   The model learns from example conversations")
         job_arn, model_name = launch_sft_job(bedrock)
         
@@ -313,7 +313,7 @@ def main():
             monitor_job(bedrock, job_arn)
     
     elif args.mode == "rft":
-        print("\n🎯 Mode: Reinforcement Fine-Tuning (RFT)")
+        print("\n   Mode: Reinforcement Fine-Tuning (RFT)")
         print("   The model generates, a grader scores, and it improves")
         job_arn, model_name = launch_rft_job(bedrock)
         
@@ -327,7 +327,7 @@ def main():
         test_model(args.model_id)
     
     print("\n" + "=" * 60)
-    print("📋 USEFUL COMMANDS:")
+    print("USEFUL COMMANDS:")
     print("=" * 60)
     print("   Monitor in console:")
     print("   → https://console.aws.amazon.com/bedrock/home#/custom-models")

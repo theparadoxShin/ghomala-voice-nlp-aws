@@ -17,6 +17,7 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../theme';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
@@ -27,33 +28,44 @@ const isTablet = SCREEN_W >= 768;
 const MODES = [
   {
     id: 'tutor',
-    icon: '📖',
+    iconName: 'book-outline',
+    iconSet: 'Ionicons',
     title: 'Tuteur',
     subtitle: 'Apprendre le Ghomala\'',
     color: Colors.accent,
   },
   {
     id: 'conversation',
-    icon: '💬',
+    iconName: 'chatbubbles-outline',
+    iconSet: 'Ionicons',
     title: 'Dialogue',
     subtitle: 'Conversation libre',
     color: Colors.secondary,
   },
   {
     id: 'proverb',
-    icon: '🌿',
+    iconName: 'leaf-outline',
+    iconSet: 'Ionicons',
     title: 'Proverbes',
     subtitle: 'Sagesse Bamiléké',
     color: Colors.earth,
   },
   {
     id: 'translate',
-    icon: '🔄',
+    iconName: 'swap-horizontal',
+    iconSet: 'Ionicons',
     title: 'Traduire',
     subtitle: 'FR ↔ Ghomala\'',
     color: Colors.sky,
   },
 ];
+
+const ModeIcon = ({ mode, size = 24, color }) => {
+  if (mode.iconSet === 'MaterialCommunityIcons') {
+    return <MaterialCommunityIcons name={mode.iconName} size={size} color={color} />;
+  }
+  return <Ionicons name={mode.iconName} size={size} color={color} />;
+};
 
 export default function HomeScreen({ navigation }) {
   const insets = useSafeAreaInsets();
@@ -172,7 +184,7 @@ export default function HomeScreen({ navigation }) {
                 onPress={() => setSelectedMode(mode.id)}
                 activeOpacity={0.7}
               >
-                <Text style={styles.modeIcon}>{mode.icon}</Text>
+                <ModeIcon mode={mode} size={28} color={selectedMode === mode.id ? mode.color : Colors.textSecondary} />
                 <Text
                   style={[
                     styles.modeTitle,
@@ -199,7 +211,7 @@ export default function HomeScreen({ navigation }) {
               activeOpacity={0.8}
             >
               <View style={styles.voiceButtonInner}>
-                <Text style={styles.voiceButtonIcon}>🎙️</Text>
+                <Ionicons name="mic" size={32} color={Colors.textOnPrimary} />
               </View>
             </TouchableOpacity>
           </Animated.View>
@@ -326,7 +338,6 @@ const styles = StyleSheet.create({
     ...Shadows.md,
   },
   modeIcon: {
-    fontSize: isSmallScreen ? 24 : 28,
     marginBottom: Spacing.xs,
   },
   modeTitle: {
@@ -372,9 +383,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 3,
     borderColor: 'rgba(255,255,255,0.3)',
-  },
-  voiceButtonIcon: {
-    fontSize: isSmallScreen ? 32 : isTablet ? 48 : 40,
   },
   ctaText: {
     ...Typography.h2,

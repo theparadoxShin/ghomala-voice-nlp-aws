@@ -1,0 +1,36 @@
+{
+  "family": "nam-sa-backend",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::685497515185:role/NamSaEcsExecutionRole",
+  "taskRoleArn": "arn:aws:iam::685497515185:role/NamSaEcsTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "nam-sa-backend",
+      "image": "685497515185.dkr.ecr.us-east-1.amazonaws.com/nam-sa-backend:latest",
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        { "name": "AWS_REGION", "value": "us-east-1" },
+        { "name": "NOVA_LITE_MODEL_ID", "value": "us.amazon.nova-2-lite-v1:0" },
+        { "name": "POLLY_VOICE_ID", "value": "Lea" },
+        { "name": "TRANSCRIBE_BUCKET", "value": "nam-sa-ghomala-training" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/nam-sa-backend",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "essential": true
+    }
+  ]
+}

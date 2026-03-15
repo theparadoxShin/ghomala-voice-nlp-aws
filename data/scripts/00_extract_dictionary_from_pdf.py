@@ -137,7 +137,7 @@ def extract_json_from_response(text: str) -> list:
             return [data]
         return []
     except json.JSONDecodeError as e:
-        print(f"      ⚠️  JSON parse error: {e}")
+        print(f"      JSON parse error: {e}")
         return []
 
 
@@ -214,17 +214,17 @@ def extract_page(client, pdf_path: str, page_num: int, max_retries: int = 3) -> 
                 return valid
 
             if attempt < max_retries - 1:
-                print(f"      ⚠️  No valid entries, retrying ({attempt + 2}/{max_retries})...")
+                print(f"      No valid entries, retrying ({attempt + 2}/{max_retries})...")
                 time.sleep(2)
 
         except Exception as e:
             error_msg = str(e)
             if "429" in error_msg or "quota" in error_msg.lower():
                 wait = 30 * (attempt + 1)
-                print(f"      ⏳ Rate limited, waiting {wait}s...")
+                print(f"      Rate limited, waiting {wait}s...")
                 time.sleep(wait)
             elif attempt < max_retries - 1:
-                print(f"      ⚠️  Error: {error_msg[:100]}, retrying...")
+                print(f"      Retrying: {error_msg[:100]}...")
                 time.sleep(5)
             else:
                 print(f"      ❌ Failed after {max_retries} attempts: {error_msg[:100]}")
@@ -299,12 +299,12 @@ def main():
     end = args.end_page if args.end_page is not None else total_pages - 1
     end = min(end, total_pages - 1)
 
-    print("🌍 NAM SA' — Extraction du Dictionnaire Ghomala'")
+    print("NAM SA' — Extraction du Dictionnaire Ghomala'")
     print("=" * 60)
-    print(f"   📄 PDF: {pdf_path} ({total_pages} pages)")
-    print(f"   📑 Pages à traiter: {start} → {end} ({end - start + 1} pages)")
-    print(f"   🔑 Gemini API: ...{api_key[-8:]}")
-    print(f"   ⏱️  Délai entre pages: {args.delay}s")
+    print(f"   PDF: {pdf_path} ({total_pages} pages)")
+    print(f"   Pages a traiter: {start} -> {end} ({end - start + 1} pages)")
+    print(f"   Gemini API: ...{api_key[-8:]}")
+    print(f"   Delai entre pages: {args.delay}s")
     print("=" * 60)
 
     # ---------------------------------------------------------------------------
@@ -315,7 +315,7 @@ def main():
     progress = load_progress() if args.resume else {"completed_pages": [], "total_entries": 0}
 
     initial_count = len(all_entries)
-    print(f"\n   📚 Entrées existantes: {initial_count}")
+    print(f"\n   Entrees existantes: {initial_count}")
 
     # ---------------------------------------------------------------------------
     # Extract page by page
@@ -330,7 +330,7 @@ def main():
         print("\n   ✅ Toutes les pages demandées sont déjà extraites!")
         return
 
-    print(f"   📝 Pages à extraire: {len(pages_to_process)}")
+    print(f"   Pages a extraire: {len(pages_to_process)}")
     print()
 
     for idx, page_num in enumerate(pages_to_process):
@@ -362,13 +362,13 @@ def main():
     new_count = final_count - initial_count
 
     print("\n" + "=" * 60)
-    print("📊 RÉSULTAT DE L'EXTRACTION")
+    print("RESULTAT DE L'EXTRACTION")
     print("=" * 60)
-    print(f"   Entrées avant extraction:     {initial_count:>6}")
-    print(f"   Nouvelles entrées:            {new_count:>6}")
-    print(f"   Total (dédupliqué):           {final_count:>6}")
-    print(f"\n   📁 Fichier: {OUTPUT_PATH}")
-    print(f"   📋 Progrès: {PROGRESS_PATH}")
+    print(f"   Entrees avant extraction:     {initial_count:>6}")
+    print(f"   Nouvelles entrees:            {new_count:>6}")
+    print(f"   Total (deduplique):           {final_count:>6}")
+    print(f"\n   Fichier: {OUTPUT_PATH}")
+    print(f"   Progres: {PROGRESS_PATH}")
 
     # Check Unicode quality
     unicode_chars = set()
@@ -379,14 +379,14 @@ def main():
 
     expected = {"ɔ", "ɛ", "ŋ", "ə", "ʉ"}
     found = expected & unicode_chars
-    print(f"\n   🔤 Caractères Unicode Ghomala' trouvés: {', '.join(sorted(found))}")
+    print(f"\n   Caracteres Unicode Ghomala' trouves: {', '.join(sorted(found))}")
     if found == expected:
         print("   ✅ Tous les caractères spéciaux sont présents!")
     else:
         missing = expected - found
         print(f"   ⚠️  Manquants: {', '.join(sorted(missing))}")
 
-    print(f"\n   ➡️  Prochaine étape: python 01_download_datasets.py")
+    print(f"\n   Prochaine etape: python 01_download_datasets.py")
     print("=" * 60)
 
 

@@ -38,7 +38,7 @@ def create_bucket_if_needed(s3_client, bucket_name, region):
         s3_client.head_bucket(Bucket=bucket_name)
         print(f"   ✅ Bucket '{bucket_name}' exists")
     except ClientError:
-        print(f"   📦 Creating bucket '{bucket_name}' in {region}...")
+        print(f"   Creating bucket '{bucket_name}' in {region}...")
         if region == "us-east-1":
             s3_client.create_bucket(Bucket=bucket_name)
         else:
@@ -52,7 +52,7 @@ def create_bucket_if_needed(s3_client, bucket_name, region):
 def upload_file(s3_client, local_path, bucket, s3_key):
     """Upload a single file to S3 with progress info."""
     file_size = local_path.stat().st_size / 1024
-    print(f"   ⬆️  Uploading {local_path.name} ({file_size:.1f} KB) → s3://{bucket}/{s3_key}")
+    print(f"   Uploading {local_path.name} ({file_size:.1f} KB) -> s3://{bucket}/{s3_key}")
     
     s3_client.upload_file(
         str(local_path), 
@@ -66,7 +66,7 @@ def upload_file(s3_client, local_path, bucket, s3_key):
 
 def validate_jsonl(file_path):
     """Quick validation that the JSONL is well-formed."""
-    print(f"   🔍 Validating {file_path.name}...")
+    print(f"   Validating {file_path.name}...")
     line_count = 0
     errors = 0
     
@@ -94,7 +94,7 @@ def validate_jsonl(file_path):
 
 
 def main():
-    print("🌍 NAM SA' — S3 Upload Pipeline")
+    print("NAM SA' — S3 Upload Pipeline")
     print("=" * 60)
     
     # Check files exist
@@ -103,7 +103,7 @@ def main():
         return
     
     # Validate before uploading
-    print("\n📋 Validating JSONL files...")
+    print("\nValidating JSONL files...")
     if not validate_jsonl(TRAIN_FILE):
         print("❌ Training file has errors. Fix them before uploading.")
         return
@@ -112,14 +112,14 @@ def main():
         validate_jsonl(VAL_FILE)
     
     # Initialize S3
-    print("\n📡 Connecting to AWS S3...")
+    print("\nConnecting to AWS S3...")
     s3 = boto3.client("s3", region_name=AWS_REGION)
     
     # Create bucket
     create_bucket_if_needed(s3, BUCKET_NAME, AWS_REGION)
     
     # Upload files
-    print("\n⬆️  Uploading files...")
+    print("\nUploading files...")
     train_s3_uri = upload_file(
         s3, TRAIN_FILE, BUCKET_NAME, 
         f"{S3_PREFIX}/train.jsonl"
@@ -134,7 +134,7 @@ def main():
     
     # Summary
     print("\n" + "=" * 60)
-    print("📊 UPLOAD SUMMARY")
+    print("UPLOAD SUMMARY")
     print("=" * 60)
     print(f"   Bucket:    {BUCKET_NAME}")
     print(f"   Region:    {AWS_REGION}")
@@ -142,12 +142,12 @@ def main():
     if val_s3_uri:
         print(f"   Val URI:   {val_s3_uri}")
     
-    print(f"\n   📋 Save these URIs for the fine-tuning step:")
+    print(f"\n   Save these URIs for the fine-tuning step:")
     print(f"      TRAIN_S3_URI = \"{train_s3_uri}\"")
     if val_s3_uri:
         print(f"      VAL_S3_URI   = \"{val_s3_uri}\"")
     
-    print(f"\n   ➡️  Next step: python 04_launch_fine_tuning.py")
+    print(f"\n   Next step: python 04_launch_fine_tuning.py")
     print("=" * 60)
 
 

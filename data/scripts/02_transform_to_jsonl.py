@@ -88,7 +88,7 @@ def transform_french_ghomala(raw_path: Path) -> list:
     2. "Traduis en Ghomala' : X"
     3. "Que signifie X en français?" (reverse)
     """
-    print("🔄 Transforming French-Ghomala' translations...")
+    print("Transforming French-Ghomala' translations...")
 
     with open(raw_path, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -143,7 +143,7 @@ def transform_english_ghomala(raw_path: Path) -> list:
     1. "How do you say X in Ghomala'?"
     2. "Translate to English: BBJ"
     """
-    print("🔄 Transforming English-Ghomala' translations...")
+    print("Transforming English-Ghomala' translations...")
 
     with open(raw_path, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -200,7 +200,7 @@ def transform_dictionary(dict_path: Path) -> list:
       }
     ]
     """
-    print("🔄 Transforming dictionary entries...")
+    print("Transforming dictionary entries...")
 
     if not dict_path.exists():
         print("   ⚠️  Dictionary file not found. Skipping.")
@@ -263,7 +263,7 @@ def generate_cultural_conversations() -> list:
     model exactly how we want it to respond: with warmth, cultural depth,
     and pedagogical patience.
     """
-    print("🔄 Adding hand-crafted cultural conversations...")
+    print("Adding hand-crafted cultural conversations...")
 
     conversations = [
         # --- GREETING & INTRODUCTION ---
@@ -404,7 +404,7 @@ def generate_cultural_conversations() -> list:
 # MAIN: Combine all sources → split → write JSONL
 # ============================================================================
 def main():
-    print("🌍 NAM SA' — Dataset Transformation Pipeline")
+    print("NAM SA' — Dataset Transformation Pipeline")
     print("=" * 60)
 
     all_conversations = []
@@ -459,7 +459,7 @@ def main():
             print(f"   ⚠️  Validation set ({len(val_data)}) exceeds Nova Lite max ({MAX_SAMPLES}). Trimming...")
             val_data = val_data[:MAX_SAMPLES]
     else:
-        print(f"   🔓 No sample limit — keeping all {len(train_data)} training samples (open source mode)")
+        print(f"   No sample limit — keeping all {len(train_data)} training samples (open source mode)")
 
     if len(train_data) < 8:
         print(f"❌ Only {len(train_data)} training samples. Bedrock Nova Lite requires at least 8.")
@@ -479,18 +479,18 @@ def main():
 
     # Summary
     print("\n" + "=" * 60)
-    print("📊 TRANSFORMATION SUMMARY")
+    print("TRANSFORMATION SUMMARY")
     print("=" * 60)
     print(f"   Total conversations:  {len(all_conversations)}")
     print(f"   Training set (90%):   {len(train_data)}")
     print(f"   Validation set (10%): {len(val_data)}")
-    print(f"\n   📁 train.jsonl: {train_path}")
-    print(f"   📁 val.jsonl:   {val_path}")
-    print(f"\n   📏 train.jsonl size: {train_path.stat().st_size / 1024:.1f} KB")
-    print(f"   📏 val.jsonl size:   {val_path.stat().st_size / 1024:.1f} KB")
+    print(f"\n   train.jsonl: {train_path}")
+    print(f"   val.jsonl:   {val_path}")
+    print(f"\n   train.jsonl size: {train_path.stat().st_size / 1024:.1f} KB")
+    print(f"   val.jsonl size:   {val_path.stat().st_size / 1024:.1f} KB")
 
     # Show a sample
-    print(f"\n   📝 Sample training entry (first line of train.jsonl):")
+    print(f"\n   Sample training entry (first line of train.jsonl):")
     with open(train_path, "r", encoding="utf-8") as f:
         sample = json.loads(f.readline())
         user_msg = sample["messages"][0]["content"][0]["text"]
@@ -498,7 +498,7 @@ def main():
         print(f"      USER: {user_msg[:70]}...")
         print(f"      ASST: {asst_msg[:70]}...")
 
-    print(f"\n   ➡️  Next step: python 02_2_validate_jsonl.py")
+    print(f"\n   Next step: python 02_2_validate_jsonl.py")
     print("=" * 60)
 
 

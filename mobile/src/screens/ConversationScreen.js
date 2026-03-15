@@ -19,6 +19,7 @@ import {
   TextInput,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../theme';
 import { sendChat } from '../services/api';
 
@@ -34,10 +35,10 @@ const VoiceState = {
 };
 
 const STATUS_CONFIG = {
-  [VoiceState.IDLE]: { text: 'Appuie pour parler', color: Colors.stone, icon: '🎙️' },
-  [VoiceState.LISTENING]: { text: 'Je t\'écoute...', color: Colors.accent, icon: '👂' },
-  [VoiceState.THINKING]: { text: 'Je réfléchis...', color: Colors.secondary, icon: '💭' },
-  [VoiceState.SPEAKING]: { text: 'Je parle...', color: Colors.primary, icon: '🗣️' },
+  [VoiceState.IDLE]: { text: 'Appuie pour parler', color: Colors.stone, iconName: 'mic-outline' },
+  [VoiceState.LISTENING]: { text: 'Je t\'écoute...', color: Colors.accent, iconName: 'ear-outline' },
+  [VoiceState.THINKING]: { text: 'Je réfléchis...', color: Colors.secondary, iconName: 'cloud-outline' },
+  [VoiceState.SPEAKING]: { text: 'Je parle...', color: Colors.primary, iconName: 'volume-high-outline' },
 };
 
 export default function ConversationScreen({ navigation, route }) {
@@ -221,7 +222,7 @@ export default function ConversationScreen({ navigation, route }) {
           isUser ? styles.userBubbleContainer : styles.assistantBubbleContainer,
         ]}
       >
-        {!isUser && <Text style={styles.avatarEmoji}>☀️</Text>}
+        {!isUser && <Ionicons name="sunny" size={20} color={Colors.secondary} style={styles.avatarIcon} />}
         <View
           style={[
             styles.messageBubble,
@@ -255,21 +256,22 @@ export default function ConversationScreen({ navigation, route }) {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Text style={styles.backIcon}>←</Text>
+          <Ionicons name="arrow-back" size={20} color={Colors.textPrimary} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>NAM SA'</Text>
-          <Text style={styles.headerMode}>
-            {statusConfig.icon} {statusConfig.text}
-          </Text>
+          <Ionicons name={statusConfig.iconName} size={14} color={Colors.textMuted} />
+          <Text style={[styles.headerMode, { marginLeft: 4 }]}>{statusConfig.text}</Text>
         </View>
         <TouchableOpacity
           style={styles.textToggle}
           onPress={() => setShowTextInput(!showTextInput)}
         >
-          <Text style={styles.textToggleIcon}>
-            {showTextInput ? '🎙️' : '⌨️'}
-          </Text>
+          <Ionicons
+            name={showTextInput ? 'mic-outline' : 'keypad-outline'}
+            size={18}
+            color={Colors.textPrimary}
+          />
         </TouchableOpacity>
       </View>
 
@@ -307,7 +309,7 @@ export default function ConversationScreen({ navigation, route }) {
               onPress={() => handleSendText(textInput)}
               disabled={!textInput.trim() || voiceState === VoiceState.THINKING}
             >
-              <Text style={styles.sendButtonText}>→</Text>
+              <Ionicons name="send" size={20} color={Colors.textOnPrimary} />
             </TouchableOpacity>
           </View>
         ) : (
@@ -346,13 +348,15 @@ export default function ConversationScreen({ navigation, route }) {
                 activeOpacity={0.7}
                 disabled={voiceState === VoiceState.THINKING}
               >
-                <Text style={styles.voiceBtnIcon}>
-                  {voiceState === VoiceState.LISTENING
-                    ? '⏹️'
+                <Ionicons
+                  name={voiceState === VoiceState.LISTENING
+                    ? 'stop-circle'
                     : voiceState === VoiceState.THINKING
-                    ? '⏳'
-                    : '🎙️'}
-                </Text>
+                    ? 'hourglass-outline'
+                    : 'mic'}
+                  size={isSmallScreen ? 26 : 30}
+                  color={Colors.textOnPrimary}
+                />
               </TouchableOpacity>
             </Animated.View>
 
@@ -414,10 +418,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     ...Shadows.sm,
   },
-  backIcon: {
-    fontSize: 20,
-    color: Colors.textPrimary,
-  },
   headerCenter: {
     flex: 1,
     alignItems: 'center',
@@ -429,7 +429,6 @@ const styles = StyleSheet.create({
   headerMode: {
     ...Typography.caption,
     color: Colors.textMuted,
-    marginTop: 2,
   },
   textToggle: {
     width: 40,
@@ -439,9 +438,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     ...Shadows.sm,
-  },
-  textToggleIcon: {
-    fontSize: 18,
   },
 
   // --- Messages ---
@@ -461,8 +457,7 @@ const styles = StyleSheet.create({
   assistantBubbleContainer: {
     justifyContent: 'flex-start',
   },
-  avatarEmoji: {
-    fontSize: 20,
+  avatarIcon: {
     marginRight: Spacing.xs,
     marginBottom: 4,
   },
@@ -544,9 +539,6 @@ const styles = StyleSheet.create({
   voiceBtnThinking: {
     backgroundColor: Colors.stone,
   },
-  voiceBtnIcon: {
-    fontSize: isSmallScreen ? 26 : 30,
-  },
 
   // --- Text Input ---
   textInputRow: {
@@ -576,10 +568,5 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: {
     backgroundColor: Colors.stone,
-  },
-  sendButtonText: {
-    fontSize: 20,
-    color: Colors.textOnPrimary,
-    fontWeight: '700',
   },
 });
