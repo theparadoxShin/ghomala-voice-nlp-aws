@@ -1,4 +1,4 @@
-# NAM SA' — Le Soleil S'est Levé
+# NAM SA' — The Sun was raised
 
 > AI-powered conversational agent for preserving the Ghomala' language using Amazon Nova 2 Sonic & Nova 2 Lite
 
@@ -182,4 +182,4 @@ Guardrails are applied at the Bedrock inference layer — every call to Nova Lit
 - **Prize:** $3,000 + $5,000 AWS Credits (Voice AI) / $15,000 (1st Overall)
 
 ## 📜 License
-MIT — Daemon Craft Inc.
+MIT

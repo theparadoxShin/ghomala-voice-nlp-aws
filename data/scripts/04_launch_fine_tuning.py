@@ -37,8 +37,6 @@ Prerequisites:
 Usage:
   python 04_launch_fine_tuning.py --mode sft     # Supervised Fine-Tuning
   python 04_launch_fine_tuning.py --mode rft     # Reinforcement Fine-Tuning
-
-Author: Daemon Craft Inc.
 ============================================================================
 """
 

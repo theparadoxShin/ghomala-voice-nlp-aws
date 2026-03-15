@@ -10,8 +10,6 @@ Prerequisites:
 
 Usage:
   python 03_upload_to_s3.py
-
-Author: Daemon Craft Inc.
 ============================================================================
 """
 
