@@ -437,57 +437,44 @@ def main():
     # ================================================================
     # SAMPLE LIMIT
     # ================================================================
-    # AWS Bedrock Nova Lite: max 20,000 samples per file
+    # AWS Bedrock Nova 2 Lite: max 20,000 training samples
+    # Nova 2 does NOT support a validation set — train.jsonl only
     # Open Source (post-hackathon): use --no-limit to keep ALL samples
     #
     #   python 02_transform_to_jsonl.py              → capped at 20,000 (AWS)
     #   python 02_transform_to_jsonl.py --no-limit    → all samples (open source)
     # ================================================================
-    MAX_SAMPLES = None if args.no_limit else 20000
+    MAX_TOTAL = None if args.no_limit else 20000
 
-    # Split: 90% train, 10% validation
-    split_idx = int(len(all_conversations) * 0.9)
-    train_data = all_conversations[:split_idx]
-    val_data = all_conversations[split_idx:]
+    # Cap total samples to Bedrock limits
+    if MAX_TOTAL and len(all_conversations) > MAX_TOTAL:
+        print(f"   Total samples ({len(all_conversations)}) exceeds Nova Lite max ({MAX_TOTAL}). Trimming...")
+        all_conversations = all_conversations[:MAX_TOTAL]
+    elif not MAX_TOTAL:
+        print(f"   No sample limit — keeping all {len(all_conversations)} samples (open source mode)")
 
-    # Cap to Bedrock limits (unless --no-limit)
-    if MAX_SAMPLES:
-        if len(train_data) > MAX_SAMPLES:
-            print(f"   ⚠️  Training set ({len(train_data)}) exceeds Nova Lite max ({MAX_SAMPLES}). Trimming...")
-            train_data = train_data[:MAX_SAMPLES]
-        if len(val_data) > MAX_SAMPLES:
-            print(f"   ⚠️  Validation set ({len(val_data)}) exceeds Nova Lite max ({MAX_SAMPLES}). Trimming...")
-            val_data = val_data[:MAX_SAMPLES]
-    else:
-        print(f"   No sample limit — keeping all {len(train_data)} training samples (open source mode)")
+    train_data = all_conversations
 
     if len(train_data) < 8:
         print(f"❌ Only {len(train_data)} training samples. Bedrock Nova Lite requires at least 8.")
         return
 
-    # Write JSONL files
+    # Write JSONL file (Nova 2 = train only, no validation set)
     train_path = PROCESSED_DIR / "train.jsonl"
-    val_path = PROCESSED_DIR / "val.jsonl"
 
     with open(train_path, "w", encoding="utf-8") as f:
         for conv in train_data:
-            f.write(json.dumps(conv, ensure_ascii=False) + "\n")
-
-    with open(val_path, "w", encoding="utf-8") as f:
-        for conv in val_data:
             f.write(json.dumps(conv, ensure_ascii=False) + "\n")
 
     # Summary
     print("\n" + "=" * 60)
     print("TRANSFORMATION SUMMARY")
     print("=" * 60)
-    print(f"   Total conversations:  {len(all_conversations)}")
-    print(f"   Training set (90%):   {len(train_data)}")
-    print(f"   Validation set (10%): {len(val_data)}")
+    print(f"   Total conversations generated: {len(all_conversations)}")
+    print(f"   Training samples:              {len(train_data)}")
+    print(f"   Validation set:                N/A (Nova 2 does not support it)")
     print(f"\n   train.jsonl: {train_path}")
-    print(f"   val.jsonl:   {val_path}")
-    print(f"\n   train.jsonl size: {train_path.stat().st_size / 1024:.1f} KB")
-    print(f"   val.jsonl size:   {val_path.stat().st_size / 1024:.1f} KB")
+    print(f"   train.jsonl size: {train_path.stat().st_size / 1024:.1f} KB")
 
     # Show a sample
     print(f"\n   Sample training entry (first line of train.jsonl):")

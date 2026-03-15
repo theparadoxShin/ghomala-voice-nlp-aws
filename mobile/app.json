@@ -34,7 +34,7 @@
       "favicon": "./assets/logo.png"
     },
     "extra": {
-      "API_URL": ""
+      "API_URL": "http://nam-sa-alb-1826409243.us-east-1.elb.amazonaws.com"
     },
     "plugins": [
       [
