@@ -21,7 +21,9 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../theme';
-import { sendChat } from '../services/api';
+import { sendChat, fetchTTS } from '../services/api';
+import { useAudioPlayer } from 'expo-audio';
+import * as FileSystem from 'expo-file-system';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const isSmallScreen = SCREEN_H < 700;
@@ -56,6 +58,43 @@ export default function ConversationScreen({ navigation, route }) {
   const waveAnims = useRef(
     Array.from({ length: 7 }, () => new Animated.Value(0.3))
   ).current;
+  const [playingMsgId, setPlayingMsgId] = useState(null);
+  const player = useAudioPlayer();
+
+  // === TTS Playback ===
+  const handlePlayTTS = useCallback(
+    async (messageId, text) => {
+      if (playingMsgId === messageId) {
+        player.pause();
+        setPlayingMsgId(null);
+        return;
+      }
+
+      setPlayingMsgId(messageId);
+      try {
+        // Detect language: if text has Ghomala' diacritics, it's likely bbj
+        const hasGhomalaDiacritics = /[ɔɛəŋ]|[àáâǎèéêěòóôǒùúûǔ]/.test(text);
+        const lang = hasGhomalaDiacritics ? 'bbj' : 'fr';
+
+        const result = await fetchTTS(text, lang);
+        if (result.audio) {
+          // Write base64 audio to a temp file for reliable playback
+          const ext = (result.mime_type || '').includes('wav') ? 'wav' : 'mp3';
+          const fileUri = `${FileSystem.cacheDirectory}tts_${messageId}.${ext}`;
+          await FileSystem.writeAsStringAsync(fileUri, result.audio, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          player.replace({ uri: fileUri });
+          player.play();
+        }
+      } catch (error) {
+        console.warn('TTS playback failed:', error.message);
+      } finally {
+        setPlayingMsgId(null);
+      }
+    },
+    [playingMsgId, player]
+  );
 
   // === Animations ===
   useEffect(() => {
@@ -193,7 +232,7 @@ export default function ConversationScreen({ navigation, route }) {
           {
             id: Date.now().toString(),
             role: 'assistant',
-            text: 'J\'ai bien entendu ! Pour l\'instant, utilise le mode texte en bas. Le mode vocal complet arrive bientôt avec Nova 2 Sonic !',
+            text: 'J\'ai bien entendu ! Pour l\'instant, utilise le mode texte en bas. Le mode vocal complet arrive bientôt avec Gemini Live !',
             timestamp: new Date(),
           },
         ]);
@@ -214,6 +253,7 @@ export default function ConversationScreen({ navigation, route }) {
   // === Render message bubble ===
   const renderMessage = ({ item }) => {
     const isUser = item.role === 'user';
+    const isSpeaking = playingMsgId === item.id;
 
     return (
       <View
@@ -238,6 +278,24 @@ export default function ConversationScreen({ navigation, route }) {
           >
             {item.text}
           </Text>
+          {/* Speaker button for all messages */}
+          {!item.isError && item.id !== 'welcome' && (
+            <TouchableOpacity
+              style={[
+                styles.speakerButton,
+                isUser ? styles.speakerButtonUser : styles.speakerButtonAssistant,
+                isSpeaking && styles.speakerButtonActive,
+              ]}
+              onPress={() => handlePlayTTS(item.id, item.text)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons
+                name={isSpeaking ? 'volume-high' : 'volume-medium-outline'}
+                size={16}
+                color={isUser ? 'rgba(255,255,255,0.8)' : Colors.textMuted}
+              />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     );
@@ -491,6 +549,21 @@ const styles = StyleSheet.create({
   },
   assistantText: {
     color: Colors.textPrimary,
+  },
+  speakerButton: {
+    alignSelf: 'flex-end',
+    marginTop: 6,
+    padding: 4,
+    borderRadius: 12,
+  },
+  speakerButtonUser: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+  },
+  speakerButtonAssistant: {
+    backgroundColor: Colors.backgroundAlt,
+  },
+  speakerButtonActive: {
+    backgroundColor: Colors.voicePulse,
   },
 
   // --- Bottom Bar ---

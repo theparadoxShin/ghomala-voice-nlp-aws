@@ -8,10 +8,11 @@
  */
 import Constants from 'expo-constants';
 
-const PROD_URL = 'http://nam-sa-alb-1826409243.us-east-1.elb.amazonaws.com';
+// Cloud Run URL — deployed backend
+const PROD_URL = 'https://nam-sa-976647416990.us-central1.run.app';
 
 const API_BASE = __DEV__
-  ? (Constants.expoConfig?.extra?.API_URL || 'http://192.168.1.100:8000')
+  ? (Constants.expoConfig?.extra?.API_URL || 'http://192.168.1.100:8080')
   : (Constants.expoConfig?.extra?.API_URL || PROD_URL);
 
 const WS_BASE = API_BASE.replace(/^http/, 'ws');
@@ -61,6 +62,26 @@ export async function checkHealth() {
   return response.json();
 }
 
+/**
+ * Text-to-Speech — returns base64 audio for a given text.
+ * @param {string} text - Text to speak
+ * @param {string} language - 'fr', 'en', or 'bbj' (Ghomala')
+ * @returns {{ audio: string, mime_type: string }} base64-encoded audio
+ */
+export async function fetchTTS(text, language = 'fr') {
+  const response = await fetch(`${API_BASE}/api/tts`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, language }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`TTS API error: ${response.status}`);
+  }
+
+  return response.json();
+}
+
 
 // ============================================================================
 // WEBSOCKET — Voice Streaming
@@ -69,14 +90,14 @@ export async function checkHealth() {
 export class VoiceConnection {
   /**
    * @param {Object} opts
-   * @param {boolean} opts.useSonic - Use Nova 2 Sonic endpoint (real-time speech-to-speech)
+   * @param {boolean} opts.useLive - Use Gemini Live API endpoint (real-time speech-to-speech)
    */
-  constructor({ useSonic = false } = {}) {
+  constructor({ useLive = false } = {}) {
     this.ws = null;
     this.listeners = {};
     this.sessionId = null;
     this.isConnected = false;
-    this.endpoint = useSonic ? '/ws/sonic' : '/ws/voice';
+    this.endpoint = useLive ? '/ws/live' : '/ws/voice';
   }
 
   connect(config = {}) {
@@ -158,4 +179,4 @@ export class VoiceConnection {
 
 // Singleton instances
 export const voiceConnection = new VoiceConnection();
-export const sonicConnection = new VoiceConnection({ useSonic: true });
+export const liveConnection = new VoiceConnection({ useLive: true });

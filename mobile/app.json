@@ -4,14 +4,16 @@
     "slug": "nam-sa",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/logo.png",
+    "icon": "./assets/playstore.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/logo.png",
+      "image": "./assets/playstore.png",
       "resizeMode": "contain",
       "backgroundColor": "#FFF8F0"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.daemoncraft.namsa",
@@ -22,7 +24,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logo.png",
+        "foregroundImage": "./assets/playstore.png",
         "backgroundColor": "#FFF8F0"
       },
       "package": "com.daemoncraft.namsa",
@@ -31,18 +33,20 @@
       ]
     },
     "web": {
-      "favicon": "./assets/logo.png"
+      "favicon": "./assets/playstore.png"
     },
     "extra": {
-      "API_URL": "http://nam-sa-alb-1826409243.us-east-1.elb.amazonaws.com"
+      "API_URL": "https://nam-sa-976647416990.us-central1.run.app"
     },
     "plugins": [
       [
-        "expo-av",
+        "expo-audio",
         {
-          "microphonePermission": "NAM SA' needs your microphone for Ghomala' conversations."
+          "microphonePermission": "NAM SA' a besoin de ton micro pour les conversations en Ghomala'."
         }
-      ]
+      ],
+      "expo-asset",
+      "expo-localization"
     ]
   }
 }

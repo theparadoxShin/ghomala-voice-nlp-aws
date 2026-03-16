@@ -1,10 +1,10 @@
 /**
  * HomeScreen — NAM SA'
- * Landing screen with logo, sun animation, mode selector and voice CTA.
- * Adapts to all screen sizes (small phones to tablets).
+ * Landing screen: logo, language selector, mode cards, voice CTA.
+ * Everything fits on screen — no scrolling.
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,244 +13,106 @@ import {
   Animated,
   Dimensions,
   Image,
-  ScrollView,
-  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
+import { useLanguage } from '../context/LanguageContext';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../theme';
 
-const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
-const isSmallScreen = SCREEN_H < 700;
-const isTablet = SCREEN_W >= 768;
+const { width: SCREEN_W } = Dimensions.get('window');
 
-// Conversation modes
 const MODES = [
-  {
-    id: 'tutor',
-    iconName: 'book-outline',
-    iconSet: 'Ionicons',
-    title: 'Tuteur',
-    subtitle: 'Apprendre le Ghomala\'',
-    color: Colors.accent,
-  },
-  {
-    id: 'conversation',
-    iconName: 'chatbubbles-outline',
-    iconSet: 'Ionicons',
-    title: 'Dialogue',
-    subtitle: 'Conversation libre',
-    color: Colors.secondary,
-  },
-  {
-    id: 'proverb',
-    iconName: 'leaf-outline',
-    iconSet: 'Ionicons',
-    title: 'Proverbes',
-    subtitle: 'Sagesse Bamiléké',
-    color: Colors.earth,
-  },
-  {
-    id: 'translate',
-    iconName: 'swap-horizontal',
-    iconSet: 'Ionicons',
-    title: 'Traduire',
-    subtitle: 'FR ↔ Ghomala\'',
-    color: Colors.sky,
-  },
+  { id: 'Dictionary', icon: 'book-outline', titleKey: 'translate', subKey: 'translateSub', color: Colors.sky },
+  { id: 'Dialogue', icon: 'mic-outline', titleKey: 'dialogue', subKey: 'dialogueSub', color: Colors.secondary },
+  { id: 'Proverbs', icon: 'leaf-outline', titleKey: 'proverbs', subKey: 'proverbsSub', color: Colors.earth },
+  { id: 'Tutor', icon: 'school-outline', titleKey: 'tutor', subKey: 'tutorSub', color: Colors.accent },
 ];
 
-const ModeIcon = ({ mode, size = 24, color }) => {
-  if (mode.iconSet === 'MaterialCommunityIcons') {
-    return <MaterialCommunityIcons name={mode.iconName} size={size} color={color} />;
-  }
-  return <Ionicons name={mode.iconName} size={size} color={color} />;
-};
+const CARD_W = (SCREEN_W - Spacing.lg * 2 - Spacing.sm) / 2;
 
 export default function HomeScreen({ navigation }) {
   const insets = useSafeAreaInsets();
-  const [selectedMode, setSelectedMode] = useState('tutor');
+  const { lang, switchLanguage, t } = useLanguage();
 
-  // Animations
-  const sunRotate = useRef(new Animated.Value(0)).current;
-  const fadeIn = useRef(new Animated.Value(0)).current;
-  const slideUp = useRef(new Animated.Value(30)).current;
+  // Mic button pulse
   const pulseAnim = useRef(new Animated.Value(1)).current;
-
   useEffect(() => {
-    // Sun glow pulse
     Animated.loop(
       Animated.sequence([
-        Animated.timing(sunRotate, {
-          toValue: 1,
-          duration: 8000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(sunRotate, {
-          toValue: 0,
-          duration: 8000,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-
-    // Entrance animations
-    Animated.parallel([
-      Animated.timing(fadeIn, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideUp, {
-        toValue: 0,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-    ]).start();
-
-    // Voice button pulse
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.08,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
+        Animated.timing(pulseAnim, { toValue: 1.08, duration: 1500, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 1500, useNativeDriver: true }),
       ])
     ).start();
   }, []);
 
-  const sunOpacity = sunRotate.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [0.6, 1, 0.6],
-  });
-
-  const startConversation = () => {
-    navigation.navigate('Conversation', { mode: selectedMode });
-  };
-
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        bounces={true}
-      >
-        {/* === HERO SECTION === */}
-        <Animated.View
-          style={[
-            styles.heroSection,
-            {
-              opacity: fadeIn,
-              transform: [{ translateY: slideUp }],
-            },
-          ]}
+    <View style={[styles.container, { paddingTop: insets.top + Spacing.sm }]}>
+      {/* === LANGUAGE SELECTOR === */}
+      <View style={styles.langBar}>
+        <TouchableOpacity
+          style={[styles.langBtn, lang === 'fr' && styles.langBtnActive]}
+          onPress={() => switchLanguage('fr')}
         >
-          {/* Sun glow background */}
-          <Animated.View style={[styles.sunGlow, { opacity: sunOpacity }]} />
+          <Text style={[styles.langText, lang === 'fr' && styles.langTextActive]}>FR</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.langBtn, lang === 'en' && styles.langBtnActive]}
+          onPress={() => switchLanguage('en')}
+        >
+          <Text style={[styles.langText, lang === 'en' && styles.langTextActive]}>EN</Text>
+        </TouchableOpacity>
+      </View>
 
-          {/* Logo */}
-          <Image
-            source={require('../../assets/logo.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+      {/* === HERO === */}
+      <View style={styles.heroSection}>
+        <Image
+          source={require('../../assets/playstore.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <Text style={styles.appName}>NAM SA'</Text>
+        <Text style={styles.appSubtitle}>{t('appSubtitle')}</Text>
+      </View>
 
-          {/* App name */}
-          <Text style={styles.appName}>NAM SA'</Text>
-          <Text style={styles.appSubtitle}>Le soleil s'est levé</Text>
-          <Text style={styles.appDescription}>
-            Préservons le Ghomala' ensemble
-          </Text>
+      {/* === MODE GRID === */}
+      <View style={styles.modeGrid}>
+        {MODES.map((mode) => (
+          <TouchableOpacity
+            key={mode.id}
+            style={[styles.modeCard, { borderLeftColor: mode.color }]}
+            onPress={() => navigation.navigate(mode.id)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name={mode.icon} size={28} color={mode.color} />
+            <Text style={styles.modeTitle}>{t(mode.titleKey)}</Text>
+            <Text style={styles.modeSubtitle}>{t(mode.subKey)}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* === VOICE CTA === */}
+      <View style={styles.ctaSection}>
+        <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+          <TouchableOpacity
+            style={styles.voiceButton}
+            onPress={() => navigation.navigate('Dialogue')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.voiceButtonInner}>
+              <Ionicons name="mic" size={32} color={Colors.textOnPrimary} />
+            </View>
+          </TouchableOpacity>
         </Animated.View>
-
-        {/* === MODE SELECTOR === */}
-        <View style={styles.modeSection}>
-          <Text style={styles.sectionTitle}>Choisir un mode</Text>
-          <View style={styles.modeGrid}>
-            {MODES.map((mode) => (
-              <TouchableOpacity
-                key={mode.id}
-                style={[
-                  styles.modeCard,
-                  selectedMode === mode.id && styles.modeCardActive,
-                  selectedMode === mode.id && { borderColor: mode.color },
-                ]}
-                onPress={() => setSelectedMode(mode.id)}
-                activeOpacity={0.7}
-              >
-                <ModeIcon mode={mode} size={28} color={selectedMode === mode.id ? mode.color : Colors.textSecondary} />
-                <Text
-                  style={[
-                    styles.modeTitle,
-                    selectedMode === mode.id && { color: mode.color },
-                  ]}
-                >
-                  {mode.title}
-                </Text>
-                <Text style={styles.modeSubtitle}>{mode.subtitle}</Text>
-                {selectedMode === mode.id && (
-                  <View style={[styles.modeIndicator, { backgroundColor: mode.color }]} />
-                )}
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* === VOICE CTA === */}
-        <View style={styles.ctaSection}>
-          <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-            <TouchableOpacity
-              style={styles.voiceButton}
-              onPress={startConversation}
-              activeOpacity={0.8}
-            >
-              <View style={styles.voiceButtonInner}>
-                <Ionicons name="mic" size={32} color={Colors.textOnPrimary} />
-              </View>
-            </TouchableOpacity>
-          </Animated.View>
-          <Text style={styles.ctaText}>Appuie pour parler</Text>
-          <Text style={styles.ctaSubtext}>
-            {MODES.find((m) => m.id === selectedMode)?.subtitle}
-          </Text>
-        </View>
-
-        {/* === QUICK PHRASES === */}
-        <View style={styles.phrasesSection}>
-          <Text style={styles.sectionTitle}>Essaie de dire...</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {[
-              'Comment dit-on bonjour ?',
-              'Apprends-moi à compter',
-              'Un proverbe Bamiléké',
-              'Comment me présenter ?',
-              'Les mots de la famille',
-            ].map((phrase, i) => (
-              <TouchableOpacity
-                key={i}
-                style={styles.phraseChip}
-                onPress={() =>
-                  navigation.navigate('Conversation', {
-                    mode: selectedMode,
-                    initialMessage: phrase,
-                  })
-                }
-              >
-                <Text style={styles.phraseText}>{phrase}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* Bottom spacing */}
-        <View style={{ height: insets.bottom + 20 }} />
-      </ScrollView>
+        <Text style={styles.ctaText}>{t('tapToSpeak')}</Text>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Chat')}
+          style={styles.chatLink}
+          hitSlop={{ top: 8, bottom: 8, left: 16, right: 16 }}
+        >
+          <Ionicons name="chatbubble-ellipses-outline" size={16} color={Colors.textMuted} />
+          <Text style={styles.chatLinkText}>{t('chatMode')}</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -262,36 +124,40 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
     paddingHorizontal: Spacing.lg,
   },
+
+  // --- Language selector ---
+  langBar: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: Spacing.xs,
+    marginBottom: Spacing.sm,
+  },
+  langBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.card,
+    ...Shadows.sm,
+  },
+  langBtnActive: { backgroundColor: Colors.primary },
+  langText: { ...Typography.labelSmall, color: Colors.textSecondary },
+  langTextActive: { color: Colors.textOnPrimary },
 
   // --- Hero ---
   heroSection: {
     alignItems: 'center',
-    paddingTop: isSmallScreen ? Spacing.md : Spacing.xl,
-    paddingBottom: Spacing.lg,
-    position: 'relative',
-  },
-  sunGlow: {
-    position: 'absolute',
-    top: isSmallScreen ? -40 : -60,
-    width: isTablet ? 400 : 280,
-    height: isTablet ? 400 : 280,
-    borderRadius: 200,
-    backgroundColor: Colors.secondaryLight,
-    opacity: 0.15,
+    marginBottom: Spacing.lg,
   },
   logo: {
-    width: isSmallScreen ? 100 : isTablet ? 180 : 140,
-    height: isSmallScreen ? 100 : isTablet ? 180 : 140,
-    marginBottom: Spacing.md,
+    width: 90,
+    height: 90,
+    marginBottom: Spacing.xs,
   },
   appName: {
     ...Typography.displayLarge,
-    fontSize: isSmallScreen ? 32 : isTablet ? 48 : 40,
+    fontSize: 34,
     color: Colors.primary,
     textAlign: 'center',
   },
@@ -301,83 +167,51 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginTop: Spacing.xs,
   },
-  appDescription: {
-    ...Typography.body,
-    color: Colors.textMuted,
-    marginTop: Spacing.xs,
-  },
 
-  // --- Mode Selector ---
-  modeSection: {
-    marginTop: Spacing.lg,
-  },
-  sectionTitle: {
-    ...Typography.label,
-    color: Colors.textSecondary,
-    textTransform: 'uppercase',
-    marginBottom: Spacing.md,
-  },
+  // --- Mode Grid ---
   modeGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.sm,
   },
   modeCard: {
-    width: (SCREEN_W - Spacing.lg * 2 - Spacing.sm) / 2,
+    width: CARD_W,
     backgroundColor: Colors.card,
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    position: 'relative',
-    overflow: 'hidden',
+    borderLeftWidth: 3,
     ...Shadows.sm,
-  },
-  modeCardActive: {
-    backgroundColor: Colors.warmWhite,
-    ...Shadows.md,
-  },
-  modeIcon: {
-    marginBottom: Spacing.xs,
   },
   modeTitle: {
     ...Typography.h3,
     color: Colors.textPrimary,
+    marginTop: Spacing.xs,
   },
   modeSubtitle: {
     ...Typography.caption,
     color: Colors.textMuted,
     marginTop: 2,
   },
-  modeIndicator: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 3,
-    borderBottomLeftRadius: BorderRadius.lg,
-    borderBottomRightRadius: BorderRadius.lg,
-  },
 
   // --- Voice CTA ---
   ctaSection: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: Spacing.xl,
-    paddingVertical: Spacing.lg,
   },
   voiceButton: {
-    width: isSmallScreen ? 90 : isTablet ? 130 : 110,
-    height: isSmallScreen ? 90 : isTablet ? 130 : 110,
-    borderRadius: 100,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: Colors.secondary,
     justifyContent: 'center',
     alignItems: 'center',
     ...Shadows.glow,
   },
   voiceButtonInner: {
-    width: isSmallScreen ? 75 : isTablet ? 110 : 92,
-    height: isSmallScreen ? 75 : isTablet ? 110 : 92,
-    borderRadius: 100,
+    width: 84,
+    height: 84,
+    borderRadius: 42,
     backgroundColor: Colors.secondaryLight,
     justifyContent: 'center',
     alignItems: 'center',
@@ -385,33 +219,19 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.3)',
   },
   ctaText: {
-    ...Typography.h2,
+    ...Typography.h3,
     color: Colors.textPrimary,
     marginTop: Spacing.md,
   },
-  ctaSubtext: {
-    ...Typography.body,
+  chatLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: Spacing.sm,
+    paddingVertical: 6,
+  },
+  chatLinkText: {
+    ...Typography.caption,
     color: Colors.textMuted,
-    marginTop: Spacing.xs,
-  },
-
-  // --- Quick Phrases ---
-  phrasesSection: {
-    marginTop: Spacing.xl,
-    marginBottom: Spacing.lg,
-  },
-  phraseChip: {
-    backgroundColor: Colors.card,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm + 2,
-    borderRadius: BorderRadius.full,
-    marginRight: Spacing.sm,
-    borderWidth: 1,
-    borderColor: Colors.sand,
-    ...Shadows.sm,
-  },
-  phraseText: {
-    ...Typography.body,
-    color: Colors.primary,
   },
 });

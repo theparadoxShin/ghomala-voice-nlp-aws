@@ -52,11 +52,11 @@ logging.basicConfig(level=logging.INFO)
 # ============================================================================
 AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 
-# Fine-tuned model — set via env var after fine-tuning completes
-# Falls back to base Nova 2 Lite if no fine-tuned model is available
+# Fine-tuned model deployed via on-demand custom model deployment
+# Falls back to base Nova 2 Lite if deployment ARN is not set
 NOVA_LITE_MODEL_ID = os.getenv(
     "NOVA_LITE_MODEL_ID",
-    "us.amazon.nova-2-lite-v1:0"
+    "arn:aws:bedrock:us-east-1:685497515185:custom-model-deployment/0845rha0mvyz"
 )
 
 # Polly voice for French TTS
