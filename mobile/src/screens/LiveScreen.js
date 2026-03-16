@@ -20,7 +20,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../theme';
 import Constants from 'expo-constants';
 
-const PROD_URL = 'https://nam-sa-976647416990.us-central1.run.app';
+const PROD_URL = 'http://nam-sa-alb-1826409243.us-east-1.elb.amazonaws.com';
 const API_BASE = __DEV__
   ? (Constants.expoConfig?.extra?.API_URL || 'http://192.168.1.100:8080')
   : (Constants.expoConfig?.extra?.API_URL || PROD_URL);

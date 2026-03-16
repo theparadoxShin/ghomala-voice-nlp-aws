@@ -164,6 +164,11 @@ class ChatResponse(BaseModel):
     timestamp: str
 
 
+class TTSRequest(BaseModel):
+    text: str
+    language: str = "fr"
+
+
 # ============================================================================
 # CORE: Call fine-tuned Nova 2 Lite via Bedrock converse()
 # ============================================================================
@@ -196,7 +201,9 @@ async def root():
         "endpoints": {
             "chat": "/api/chat",
             "translate": "/api/translate",
+            "tts": "/api/tts",
             "voice": "/ws/voice",
+            "live": "/ws/live",
             "sonic": "/ws/sonic",
             "health": "/health",
         },
@@ -260,6 +267,41 @@ async def translate(request: TranslateRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.post("/api/tts")
+async def text_to_speech(request: TTSRequest):
+    """
+    Text-to-Speech via Amazon Polly.
+    Returns base64-encoded MP3 audio.
+    Language: 'fr' → Lea, 'en' → Matthew, 'bbj' → Lea (French voice for Ghomala').
+    """
+    voice_map = {
+        "fr": ("Lea", "fr-FR"),
+        "en": ("Matthew", "en-US"),
+        "bbj": ("Lea", "fr-FR"),  # Use French voice for Ghomala' (closest phonetics)
+    }
+    voice_id, lang_code = voice_map.get(request.language, ("Lea", "fr-FR"))
+
+    try:
+        response = polly_client.synthesize_speech(
+            Text=request.text,
+            OutputFormat="mp3",
+            VoiceId=voice_id,
+            Engine="neural",
+            LanguageCode=lang_code,
+        )
+        audio_bytes = response["AudioStream"].read()
+        audio_b64 = base64.b64encode(audio_bytes).decode("utf-8")
+        return {
+            "audio": audio_b64,
+            "mime_type": "audio/mpeg",
+            "voice": voice_id,
+            "language": request.language,
+        }
+    except Exception as e:
+        logger.error(f"TTS error: {e}")
+        raise HTTPException(status_code=500, detail=f"TTS failed: {e}")
+
+
 # ============================================================================
 # VOICE PIPELINE: Transcribe → Nova 2 Lite → Polly
 # ============================================================================
@@ -318,6 +360,62 @@ async def synthesize_speech(text: str) -> bytes:
         SampleRate="24000",
     )
     return response["AudioStream"].read()
+
+
+async def synthesize_speech_mp3(text: str, voice_id: str = "Lea") -> bytes:
+    """Convert text to MP3 speech using Amazon Polly."""
+    response = polly_client.synthesize_speech(
+        Text=text,
+        OutputFormat="mp3",
+        VoiceId=voice_id,
+        Engine="neural",
+    )
+    return response["AudioStream"].read()
+
+
+async def transcribe_audio_flexible(audio_bytes: bytes, media_format: str = "mp4") -> str:
+    """
+    Transcribe audio bytes to text using Amazon Transcribe (batch mode).
+    Supports wav, mp4/m4a, mp3, flac, ogg, etc.
+    """
+    job_name = f"namsa-{uuid.uuid4().hex[:8]}"
+    s3 = boto3.client("s3", region_name=AWS_REGION)
+    bucket = os.getenv("TRANSCRIBE_BUCKET", "nam-sa-ghomala-training")
+    ext = {"mp4": "m4a", "wav": "wav", "mp3": "mp3"}.get(media_format, "m4a")
+    key = f"temp-audio/{job_name}.{ext}"
+
+    s3.put_object(Bucket=bucket, Key=key, Body=audio_bytes)
+    s3_uri = f"s3://{bucket}/{key}"
+
+    try:
+        transcribe_client.start_transcription_job(
+            TranscriptionJobName=job_name,
+            Media={"MediaFileUri": s3_uri},
+            MediaFormat=media_format,
+            LanguageCode="fr-FR",
+        )
+        for _ in range(60):
+            status = transcribe_client.get_transcription_job(TranscriptionJobName=job_name)
+            job_status = status["TranscriptionJob"]["TranscriptionJobStatus"]
+            if job_status == "COMPLETED":
+                import urllib.request
+                result_url = status["TranscriptionJob"]["Transcript"]["TranscriptFileUri"]
+                with urllib.request.urlopen(result_url) as resp:
+                    result = json.loads(resp.read())
+                return result["results"]["transcripts"][0]["transcript"]
+            elif job_status == "FAILED":
+                return ""
+            await asyncio.sleep(1)
+        return ""
+    finally:
+        try:
+            transcribe_client.delete_transcription_job(TranscriptionJobName=job_name)
+        except Exception:
+            pass
+        try:
+            s3.delete_object(Bucket=bucket, Key=key)
+        except Exception:
+            pass
 
 
 # ============================================================================
@@ -414,6 +512,107 @@ async def voice_stream(websocket: WebSocket):
         logger.info(f"Voice session ended: {session_id}")
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
+
+
+# ============================================================================
+# WEBSOCKET — Live Voice Conversation (record-then-send)
+# ============================================================================
+@app.websocket("/ws/live")
+async def live_voice_stream(websocket: WebSocket):
+    """
+    Live voice conversation via WebSocket (record-then-send pattern).
+    Used by LiveScreen: records audio with silence detection, sends complete clips.
+
+    Protocol:
+      Client → {"type": "config", "language": "fr"}
+      Server → {"type": "status", "status": "ready"}
+      Client → {"type": "audio", "data": "<base64_m4a>", "mime_type": "audio/mp4"}
+      Server → {"type": "user_transcript", "text": "..."}
+      Server → {"type": "transcript", "text": "..."}     (assistant response)
+      Server → {"type": "audio_response", "data": "<base64_mp3>", "format": "mp3"}
+      Server → {"type": "turn_complete"}
+      Server → {"type": "error", "message": "..."}
+      Client → {"type": "stop"}
+    """
+    await websocket.accept()
+    session_id = str(uuid.uuid4())
+    logger.info(f"Live voice session started: {session_id}")
+
+    config = {"language": "fr"}
+
+    try:
+        while True:
+            data = await websocket.receive_text()
+            msg = json.loads(data)
+
+            if msg["type"] == "config":
+                config.update(msg)
+                await websocket.send_json({
+                    "type": "status",
+                    "status": "ready",
+                    "session_id": session_id,
+                })
+                continue
+
+            if msg["type"] == "audio":
+                audio_bytes = base64.b64decode(msg["data"])
+                mime_type = msg.get("mime_type", "audio/mp4")
+
+                # Determine format for Transcribe
+                media_format = "mp4"
+                if "wav" in mime_type:
+                    media_format = "wav"
+                elif "mp3" in mime_type or "mpeg" in mime_type:
+                    media_format = "mp3"
+
+                try:
+                    # Step 1: Speech → Text (Transcribe)
+                    user_text = await transcribe_audio_flexible(audio_bytes, media_format)
+
+                    if user_text:
+                        await websocket.send_json({
+                            "type": "user_transcript",
+                            "text": user_text,
+                        })
+
+                    # Step 2: Text → Response (Nova 2 Lite fine-tuned)
+                    prompt = (
+                        f"[Mode: conversation] L'utilisateur parle. "
+                        f"Réponds naturellement en Ghomala'/Français.\n\n"
+                        f"Utilisateur: {user_text or '[audio non transcrit]'}"
+                    )
+                    response_text = await call_nova_lite(prompt)
+
+                    await websocket.send_json({
+                        "type": "transcript",
+                        "text": response_text,
+                    })
+
+                    # Step 3: Response → Speech (Polly MP3)
+                    audio_response = await synthesize_speech_mp3(response_text)
+                    await websocket.send_json({
+                        "type": "audio_response",
+                        "data": base64.b64encode(audio_response).decode("utf-8"),
+                        "format": "mp3",
+                    })
+
+                    # Signal turn complete so client can auto-restart listening
+                    await websocket.send_json({"type": "turn_complete"})
+
+                except Exception as e:
+                    logger.error(f"Live voice processing error: {e}")
+                    await websocket.send_json({
+                        "type": "error",
+                        "message": "Erreur de traitement vocal. Réessaie.",
+                    })
+
+            if msg["type"] == "stop":
+                break
+
+    except WebSocketDisconnect:
+        logger.info(f"Live voice session ended: {session_id}")
+    except Exception as e:
+        logger.error(f"Live voice WebSocket error: {e}")
 
 
 # ============================================================================

@@ -36,7 +36,7 @@
       "favicon": "./assets/playstore.png"
     },
     "extra": {
-      "API_URL": "https://nam-sa-976647416990.us-central1.run.app"
+      "API_URL": "http://nam-sa-alb-1826409243.us-east-1.elb.amazonaws.com"
     },
     "plugins": [
       [

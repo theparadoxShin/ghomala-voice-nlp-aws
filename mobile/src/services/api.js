@@ -8,8 +8,8 @@
  */
 import Constants from 'expo-constants';
 
-// Cloud Run URL — deployed backend
-const PROD_URL = 'https://nam-sa-976647416990.us-central1.run.app';
+// AWS ALB — deployed backend
+const PROD_URL = 'http://nam-sa-alb-1826409243.us-east-1.elb.amazonaws.com';
 
 const API_BASE = __DEV__
   ? (Constants.expoConfig?.extra?.API_URL || 'http://192.168.1.100:8080')
@@ -87,96 +87,12 @@ export async function fetchTTS(text, language = 'fr') {
 // WEBSOCKET — Voice Streaming
 // ============================================================================
 
-export class VoiceConnection {
-  /**
-   * @param {Object} opts
-   * @param {boolean} opts.useLive - Use Gemini Live API endpoint (real-time speech-to-speech)
-   */
-  constructor({ useLive = false } = {}) {
-    this.ws = null;
-    this.listeners = {};
-    this.sessionId = null;
-    this.isConnected = false;
-    this.endpoint = useLive ? '/ws/live' : '/ws/voice';
-  }
-
-  connect(config = {}) {
-    return new Promise((resolve, reject) => {
-      this.ws = new WebSocket(`${WS_BASE}${this.endpoint}`);
-
-      this.ws.onopen = () => {
-        this.isConnected = true;
-        // Send initial config
-        this.ws.send(JSON.stringify({
-          type: 'config',
-          language: config.language || 'fr',
-          mode: config.mode || 'tutor',
-        }));
-        resolve();
-      };
-
-      this.ws.onmessage = (event) => {
-        const msg = JSON.parse(event.data);
-        this._emit(msg.type, msg);
-      };
-
-      this.ws.onerror = (error) => {
-        this.isConnected = false;
-        this._emit('error', { message: 'Connection error' });
-        reject(error);
-      };
-
-      this.ws.onclose = () => {
-        this.isConnected = false;
-        this._emit('disconnected', {});
-      };
-    });
-  }
-
-  sendAudio(base64Audio) {
-    if (this.ws && this.isConnected) {
-      this.ws.send(JSON.stringify({
-        type: 'audio',
-        data: base64Audio,
-      }));
-    }
-  }
-
-  updateConfig(config) {
-    if (this.ws && this.isConnected) {
-      this.ws.send(JSON.stringify({
-        type: 'config',
-        ...config,
-      }));
-    }
-  }
-
-  disconnect() {
-    if (this.ws) {
-      this.ws.send(JSON.stringify({ type: 'stop' }));
-      this.ws.close();
-      this.ws = null;
-      this.isConnected = false;
-    }
-  }
-
-  on(event, callback) {
-    if (!this.listeners[event]) {
-      this.listeners[event] = [];
-    }
-    this.listeners[event].push(callback);
-    return () => {
-      this.listeners[event] = this.listeners[event].filter(cb => cb !== callback);
-    };
-  }
-
-  _emit(event, data) {
-    if (this.listeners[event]) {
-      this.listeners[event].forEach(cb => cb(data));
-    }
-  }
+/**
+ * Create a WebSocket connection for voice streaming.
+ * @param {'voice'|'live'|'sonic'} endpoint - Which backend WS endpoint to use
+ * @returns {WebSocket}
+ */
+export function createVoiceWebSocket(endpoint = 'live') {
+  const path = `/ws/${endpoint}`;
+  return new WebSocket(`${WS_BASE}${path}`);
 }
-
-// Singleton instances
-export const voiceConnection = new VoiceConnection();
-export const liveConnection = new VoiceConnection({ useLive: true });
