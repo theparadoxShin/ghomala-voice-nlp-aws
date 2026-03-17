@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "NAM SA'",
-    "slug": "nam-sa",
+    "slug": "nam-sa-nova",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/playstore.png",
@@ -29,14 +29,21 @@
       },
       "package": "com.daemoncraft.namsa",
       "permissions": [
-        "RECORD_AUDIO"
+        "RECORD_AUDIO",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
       ]
     },
     "web": {
       "favicon": "./assets/playstore.png"
     },
     "extra": {
-      "API_URL": "http://nam-sa-alb-1826409243.us-east-1.elb.amazonaws.com"
+      "API_URL": "http://nam-sa-alb-1826409243.us-east-1.elb.amazonaws.com",
+      "eas": {
+        "projectId": "e336475c-411a-4882-b2a5-ca291f6df9a1"
+      }
     },
     "plugins": [
       [
@@ -47,6 +54,7 @@
       ],
       "expo-asset",
       "expo-localization"
-    ]
+    ],
+    "owner": "theparadoxe"
   }
 }
