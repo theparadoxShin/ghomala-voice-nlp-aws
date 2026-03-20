@@ -2,7 +2,7 @@
 
 **AI-powered conversational agent for preserving the Ghomala' language, built with Amazon Nova 2 Sonic and Nova 2 Lite fine-tuned on Amazon Bedrock.**
 
-[Download the Android APK](https://expo.dev/artifacts/eas/41PUDCNJzGHYNBe1dBptmN.apk)
+[Download the Android APK](https://expo.dev/artifacts/eas/bLgtZgZim2Sndtp5TFpzLu.apk)
 
 NAM SA' is a mobile application that teaches and preserves **Ghomala' (Ghɔ́málá')**, a tonal Bantu language spoken by approximately 1 million people in the West Region of Cameroon. Ghomala' is classified as a **vulnerable language** by UNESCO — it has no standardized writing system, very few digital resources, and its speakers are aging. NAM SA' uses voice AI and a fine-tuned language model to make learning Ghomala' accessible, interactive, and culturally grounded.
 
@@ -284,7 +284,7 @@ nkap-so-nova/
 
 Download and install the APK directly on your Android device:
 
-**[Download NAM SA' APK (Android)](https://expo.dev/artifacts/eas/41PUDCNJzGHYNBe1dBptmN.apk)**
+**[Download NAM SA' APK (Android)](https://expo.dev/artifacts/eas/bLgtZgZim2Sndtp5TFpzLu.apk)**
 
 > On most Android devices, you will need to allow installation from unknown sources when prompted. This is a standard requirement for APKs installed outside the Play Store.
 
